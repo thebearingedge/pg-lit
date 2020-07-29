@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "lib": [
+      "ES2017"
+    ],
+    "module": "commonjs",
+    "outDir": "dist/",
+    "target": "es6"
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
