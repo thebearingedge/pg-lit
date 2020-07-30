@@ -5,6 +5,7 @@
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
+    "!dist/**/test.ts",
     "!dist/**/*.test.*"
   ],
   "scripts": {
@@ -57,6 +58,9 @@
   "keywords": [],
   "author": "Tim Davis <contact@timdav.is>",
   "license": "MIT",
+  "peerDependencies": {
+    "pg": "8.x"
+  },
   "devDependencies": {
     "@types/chai": "4.2.11",
     "@types/mocha": "8.0.0",
@@ -75,6 +79,7 @@
     "lint-staged": "10.2.11",
     "mocha": "8.0.1",
     "nyc": "15.1.0",
+    "pg": "8.3.0",
     "ts-node": "8.10.2",
     "typescript": "3.9.7"
   },
@@ -102,7 +107,14 @@
         "error",
         "type"
       ],
+      "@typescript-eslint/no-extraneous-class": [
+        "error",
+        {
+          "allowEmpty": true
+        }
+      ],
       "@typescript-eslint/prefer-function-type": "off",
+      "@typescript-eslint/promise-function-async": "off",
       "@typescript-eslint/space-before-function-paren": [
         "error",
         {
@@ -121,6 +133,5 @@
     "url": "https://github.com/thebearingedge/pg-lit/issues"
   },
   "homepage": "https://github.com/thebearingedge/pg-lit#readme",
-  "description": "",
-  "dependencies": {}
+  "description": ""
 }
