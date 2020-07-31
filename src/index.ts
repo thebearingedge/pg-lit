@@ -12,10 +12,10 @@ export default function pgLit(config?: PoolConfig): PgLit {
       const driver = await pool.connect()
       const trx = createTrx({ driver })
       try {
-        await trx`begin`
+        await driver.query('begin')
         if (typeof transaction === 'undefined') return trx
         const result = await transaction(trx)
-        if (trx.state === 'pending') await trx.commit()
+        if (trx.getState() === 'pending') await trx.commit()
         return result
       } catch (err) {
         await trx.rollback()

@@ -12,9 +12,10 @@
     "test": "mocha",
     "tdd": "mocha -w -R min",
     "db:start": "docker-compose up --build -d",
+    "db:stop": "docker-compose down",
     "cover": "nyc mocha",
     "lint": "eslint --ext .ts .",
-    "prepack": "tsc"
+    "prepack": "rimraf build && tsc"
   },
   "husky": {
     "hooks": {
@@ -81,6 +82,7 @@
     "mocha": "8.0.1",
     "nyc": "15.1.0",
     "pg": "8.3.0",
+    "rimraf": "3.0.2",
     "ts-node": "8.10.2",
     "typescript": "3.9.7"
   },

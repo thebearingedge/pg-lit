@@ -3,9 +3,9 @@ import { Row, Many, Field, PgDriver } from './types'
 import { QueryFragment, InsertInto, SqlQuery, ColumnsAndValues } from './queries'
 
 const uniqueId: () => string = (() => {
-  let id = 1
+  let id = 0
   return () => {
-    id = id === Number.MAX_SAFE_INTEGER ? 1 : id + 1
+    id = id === Number.MAX_SAFE_INTEGER ? /* istanbul ignore next */ 1 : id + 1
     return 'trx_' + id.toString()
   }
 })()
@@ -40,7 +40,7 @@ export type Trx = Sql & {
   commit(): Promise<void>
   rollback(): Promise<void>
   savepoint(): Promise<void>
-  readonly state: TransactionState
+  getState(): TransactionState
 }
 
 type TransactionState = 'pending' | 'committed' | 'rolled back'
@@ -61,32 +61,30 @@ export function createTrx({ driver, parent }: TransactionConfig): Trx {
   let state: TransactionState = 'pending'
 
   const sql = createSql(driver, {
-    get state() { return state },
+    getState() { return state },
     begin: async <T extends Transaction>(transaction?: T) => {
       const trx = createTrx({ driver, parent: sql })
       try {
         await trx.savepoint()
         if (typeof transaction === 'undefined') return trx
         const result = await transaction(trx)
-        if (trx.state === 'pending') await trx.savepoint()
+        if (trx.getState() === 'pending') await trx.savepoint()
         return result
       } catch (err) {
         await trx.rollback()
         throw err
-      } finally {
-        driver.release()
       }
     },
     commit: async () => {
       if (state !== 'pending') {
-        throw new Error(`Transaction may not be committed after being ${state}.`)
+        throw new Error(`transaction may not be committed after being ${state}`)
       }
-      await (parent ?? sql)`commit`
+      await driver.query('commit')
       state = 'committed'
     },
     rollback: async () => {
       if (state !== 'pending') {
-        throw new Error(`Transaction may not be rolled back after being ${state}.`)
+        throw new Error(`transaction may not be rolled back after being ${state}`)
       }
       parent == null
         ? await driver.query('rollback')

@@ -56,7 +56,7 @@ export class ColumnsAndValues extends QueryFragment {
 
 type PartialQueryConfig = Partial<Pick<QueryConfig & QueryArrayConfig, 'name' | 'rowMode'>>
 
-export type SqlResult<T> = T[] & Omit<QueryResult, 'rows'>
+export type SqlResult<T> = QueryResult<T>['rows'] & Omit<QueryResult, 'rows'>
 
 export type OnQueryFulfilled<T> = (result: SqlResult<T>) => any
 
@@ -69,7 +69,7 @@ export abstract class Query<T> extends QueryFragment {
     this.driver = driver
   }
 
-  then<F extends OnQueryFulfilled<T>, R extends OnQueryRejected>(onFulfilled?: F, onRejected?: R): Promise<ReturnType<F>> {
+  then<F extends OnQueryFulfilled<T>, R extends OnQueryRejected>(onFulfilled: F, onRejected?: R): Promise<ReturnType<F>> {
     return this.exec({}).then(onFulfilled, onRejected)
   }
 
