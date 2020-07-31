@@ -1,8 +1,8 @@
-import createSql from './create-sql'
+import pgLit from '.'
 
-describe('createSql', () => {
+describe('sql', () => {
 
-  const sql = createSql()
+  const sql = pgLit()
 
   it('does', () => {
     const firstName = 'foo'
@@ -10,6 +10,7 @@ describe('createSql', () => {
     const query = sql`
       with "inserted" as (
         ${sql.insertInto('users', { firstName })}
+        returning *
       )
       delete from "users"
        where "firstName" = ${firstName}

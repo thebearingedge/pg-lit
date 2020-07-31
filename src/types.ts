@@ -1,4 +1,4 @@
-import { QueryResult } from 'pg'
+import { Pool, PoolClient } from 'pg'
 
 export type Field =
   | boolean
@@ -6,18 +6,13 @@ export type Field =
   | number
   | string
   | Field[]
-  | { toJSON: () => string }
+  | { toJSON(): string }
   | { [key: string]: Field }
-
-export type Param = () => string
 
 export type Row = Record<string, Field>
 
 export type Many<T> = T | T[]
 
-export type SqlFragment = {
-  text: string
-  values: Field[]
-}
+export type Maybe<T> = T | undefined
 
-export type PgLitResult<T> = T[] & Omit<QueryResult, 'rows'>
+export type PgDriver = Pool | PoolClient
