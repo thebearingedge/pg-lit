@@ -1,12 +1,16 @@
 import { Pool, PoolConfig } from 'pg'
-import { Sql, Transaction, createSql, createTransaction } from './create-sql'
+import { Sql, Transaction, createSql, createTrx } from './builders'
 
-export default function pgLit(config?: PoolConfig): Sql {
+export type PgLit = Sql & {
+  pool: Pool
+}
+
+export default function pgLit(config?: PoolConfig): PgLit {
   const pool = new Pool(config)
-  return createSql(pool, {
+  const sql = createSql(pool, {
     begin: async <T extends Transaction>(transaction?: T) => {
       const driver = await pool.connect()
-      const trx = createTransaction({ driver })
+      const trx = createTrx({ driver })
       try {
         await trx`begin`
         if (typeof transaction === 'undefined') return trx
@@ -21,4 +25,5 @@ export default function pgLit(config?: PoolConfig): Sql {
       }
     }
   })
+  return Object.assign(sql, { pool })
 }

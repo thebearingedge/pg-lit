@@ -51,11 +51,11 @@ export function createSql<T extends Transactor>(driver: PgDriver, methods: T): S
   }
   return Object.assign(sql, { driver }, methods, {
     insert: (row: Many<Row>, ...keys: string[]) => new ColumnsAndValues(row, keys),
-    insertInto: (table: string, row: Many<Row>, ...keys: string[]) => new InsertInto(driver, table, row, keys)
+    insertInto: <T>(table: string, row: Many<Row>, ...keys: string[]) => new InsertInto<T>(driver, table, row, keys)
   })
 }
 
-export function createTransaction({ driver, parent }: TransactionConfig): Trx {
+export function createTrx({ driver, parent }: TransactionConfig): Trx {
 
   const id = uniqueId()
   let state: TransactionState = 'pending'
@@ -63,7 +63,7 @@ export function createTransaction({ driver, parent }: TransactionConfig): Trx {
   const sql = createSql(driver, {
     get state() { return state },
     begin: async <T extends Transaction>(transaction?: T) => {
-      const trx = createTransaction({ driver, parent: sql })
+      const trx = createTrx({ driver, parent: sql })
       try {
         await trx.savepoint()
         if (typeof transaction === 'undefined') return trx

@@ -1,8 +1,16 @@
-import pgLit from '.'
+import pgLit, { PgLit } from '.'
 
 describe('sql', () => {
 
-  const sql = pgLit()
+  let sql: PgLit
+
+  before(() => {
+    sql = pgLit({
+      connectionString: 'postgres://test:test@localhost/test'
+    })
+  })
+
+  after(() => sql.pool.end())
 
   it('does', () => {
     const firstName = 'foo'
@@ -24,6 +32,12 @@ describe('sql', () => {
   it('also', () => {
     const query = sql``.toSql()
     console.log('EMPTY', query)
+  })
+
+  it('query', async () => {
+    type One = { one: number }
+    const [row] = await sql<One>`select 1 as "one"`
+    console.log(row)
   })
 
 })

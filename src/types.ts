@@ -13,6 +13,4 @@ export type Row = Record<string, Field>
 
 export type Many<T> = T | T[]
 
-export type Maybe<T> = T | undefined
-
 export type PgDriver = Pool | PoolClient

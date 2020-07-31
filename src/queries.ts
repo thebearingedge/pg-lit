@@ -1,4 +1,4 @@
-import { Client, QueryResult } from 'pg'
+import { Client, QueryResult, QueryConfig, QueryArrayConfig } from 'pg'
 import { Many, Row, Field, PgDriver } from './types'
 
 const { escapeIdentifier } = Client.prototype
@@ -54,6 +54,8 @@ export class ColumnsAndValues extends QueryFragment {
 
 }
 
+type PartialQueryConfig = Partial<Pick<QueryConfig & QueryArrayConfig, 'name' | 'rowMode'>>
+
 export type SqlResult<T> = T[] & Omit<QueryResult, 'rows'>
 
 export type OnQueryFulfilled<T> = (result: SqlResult<T>) => any
@@ -67,10 +69,16 @@ export abstract class Query<T> extends QueryFragment {
     this.driver = driver
   }
 
-  then<F extends OnQueryFulfilled<T>, R extends OnQueryRejected>(onFulfilled: F, onRejected?: R): Promise<ReturnType<F>> {
-    return this.driver.query(this.toSql(params()))
-      .then(({ rows, ...result }) => Object.assign(rows, result))
-      .then(onFulfilled, onRejected)
+  then<F extends OnQueryFulfilled<T>, R extends OnQueryRejected>(onFulfilled?: F, onRejected?: R): Promise<ReturnType<F>> {
+    return this.exec({}).then(onFulfilled, onRejected)
+  }
+
+  async exec(options: PartialQueryConfig): Promise<SqlResult<T>> {
+    const { rows, ...result } = await this.driver.query({
+      ...options,
+      ...this.toSql(params())
+    })
+    return Object.assign(rows, result)
   }
 
 }
