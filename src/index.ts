@@ -1,5 +1,7 @@
 import { Pool, PoolConfig } from 'pg'
-import { Sql, Transaction, createSql, createTrx } from './builders'
+import { Sql, Trx, Transaction, createSql, createTrx } from './builders'
+
+export { Trx }
 
 export type PgLit = Sql & {
   pool: Pool

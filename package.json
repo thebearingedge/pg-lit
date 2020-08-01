@@ -2,7 +2,7 @@
   "name": "pg-lit",
   "version": "0.1.0",
   "main": "dist/index.js",
-  "description": "",
+  "description": "A SQL-first query builder for `node-postgres`.",
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
