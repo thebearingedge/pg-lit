@@ -79,13 +79,13 @@ export class SetColumnsAndValues extends QueryFragment {
 
 type PartialQueryConfig = Partial<Pick<QueryConfig & QueryArrayConfig, 'name' | 'rowMode'>>
 
-export type SqlResult<T> = QueryResult<T>['rows'] & Omit<QueryResult, 'rows'>
+type SqlResult<T> = QueryResult<T>['rows'] & Omit<QueryResult, 'rows'>
 
-export type OnQueryFulfilled<T> = (result: SqlResult<T>) => any
+type OnQueryFulfilled<T> = (result: SqlResult<T>) => any
 
-export type OnQueryRejected = (reason: any) => any
+type OnQueryRejected = (reason: any) => any
 
-export abstract class Query<T> extends QueryFragment {
+abstract class Query<T> extends QueryFragment {
 
   constructor(protected driver: PgDriver) {
     super()
