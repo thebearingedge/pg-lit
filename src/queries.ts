@@ -139,7 +139,7 @@ export class SqlQuery<T> extends Query<T> {
     this.fields = fields
   }
 
-  toSql(param: Param = params()): SqlQueryConfig {
+  toSql(param: Param): SqlQueryConfig {
     const { template, fields } = this
     if (fields.length === 0) {
       return { text: template[0], values: [] }

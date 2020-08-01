@@ -39,6 +39,7 @@ interface Transactor {
 
 export type Trx = Sql & {
   commit(): Promise<void>
+  revert(): Promise<void>
   rollback(): Promise<void>
   savepoint(): Promise<void>
   getState(): TransactionState
@@ -81,17 +82,25 @@ export function createTrx({ driver, parent }: TransactionConfig): Trx {
       if (state !== 'pending') {
         throw new Error(`transaction may not be committed after being ${state}`)
       }
-      await driver.query('commit')
       state = 'committed'
+      if (parent != null) return await parent.commit()
+      await driver.query('commit')
+      driver.release()
     },
     rollback: async () => {
       if (state !== 'pending') {
         throw new Error(`transaction may not be rolled back after being ${state}`)
       }
-      parent == null
-        ? await driver.query('rollback')
-        : await driver.query(`rollback to ${id}`)
       state = 'rolled back'
+      if (parent != null) return await parent.rollback()
+      await driver.query('rollback')
+      driver.release()
+    },
+    revert: async () => {
+      if (state !== 'pending') {
+        throw new Error(`transaction may not be reverted after being ${state}`)
+      }
+      await driver.query(`rollback to ${id}`)
     },
     savepoint: async () => {
       if (state !== 'pending') {
