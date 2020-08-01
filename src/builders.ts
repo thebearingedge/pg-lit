@@ -1,6 +1,6 @@
 import { PoolClient } from 'pg'
 import { Row, Many, Field, PgDriver } from './types'
-import { QueryFragment, InsertInto, SqlQuery, ColumnsAndValues } from './queries'
+import { QueryFragment, InsertInto, SqlQuery, InsertColumnsAndValues, SetColumnsAndValues } from './queries'
 
 const uniqueId: () => string = (() => {
   let id = 0
@@ -11,7 +11,8 @@ const uniqueId: () => string = (() => {
 })()
 
 type SqlHelper = {
-  insert(row: Many<Row>, ...keys: string[]): ColumnsAndValues
+  set(updates: Row, ...keys: string[]): SetColumnsAndValues
+  insert(row: Many<Row>, ...keys: string[]): InsertColumnsAndValues
   insertInto<T>(table: string, row: Many<Row>, ...keys: string[]): InsertInto<T>
 }
 
@@ -50,7 +51,8 @@ export function createSql<T extends Transactor>(driver: PgDriver, methods: T): S
     return new SqlQuery<T>(driver, template, fields)
   }
   return Object.assign(sql, { driver }, methods, {
-    insert: (row: Many<Row>, ...keys: string[]) => new ColumnsAndValues(row, keys),
+    set: (updates: Row, ...keys: string[]) => new SetColumnsAndValues(updates, keys),
+    insert: (row: Many<Row>, ...keys: string[]) => new InsertColumnsAndValues(row, keys),
     insertInto: <T>(table: string, row: Many<Row>, ...keys: string[]) => new InsertInto<T>(driver, table, row, keys)
   })
 }

@@ -103,14 +103,41 @@ describe('sql', () => {
     })
   })
 
+  it('update set', async () => {
+    await sql.begin(async sql => {
+      await sql`
+        create temporary table "todos" (
+          "todoId"      serial,
+          "task"        text    not null,
+          "isCompleted" boolean not null default false
+        ) on commit drop
+      `
+      const todo = { task: 'do it' }
+      await sql`update "todos" ${sql.set(todo)}`
+    })
+  })
+
+  it('update set columns', async () => {
+    await sql.begin(async sql => {
+      await sql`
+        create temporary table "todos" (
+          "todoId"      serial,
+          "task"        text    not null,
+          "isCompleted" boolean not null default false
+        ) on commit drop
+      `
+      const todo = { task: 'do it' }
+      await sql`update "todos" ${sql.set(todo, 'task')}`
+    })
+  })
+
   it('insert one', async () => {
     await sql.begin(async sql => {
       await sql`
         create temporary table "todos" (
           "todoId"      serial,
           "task"        text    not null,
-          "isCompleted" boolean not null default false,
-          primary key ("todoId")
+          "isCompleted" boolean not null default false
         ) on commit drop
       `
       const todo = { task: 'do it' }
@@ -124,8 +151,7 @@ describe('sql', () => {
         create temporary table "todos" (
           "todoId"      serial,
           "task"        text    not null,
-          "isCompleted" boolean not null default false,
-          primary key ("todoId")
+          "isCompleted" boolean not null default false
         ) on commit drop
       `
       const todos = [{ task: 'do it' }, { task: 'do it now' }]
@@ -139,8 +165,7 @@ describe('sql', () => {
         create temporary table "todos" (
           "todoId"      serial,
           "task"        text    not null,
-          "isCompleted" boolean not null default false,
-          primary key ("todoId")
+          "isCompleted" boolean not null default false
         ) on commit drop
       `
       const todos = [
@@ -157,8 +182,7 @@ describe('sql', () => {
         create temporary table "todos" (
           "todoId"      serial,
           "task"        text    not null,
-          "isCompleted" boolean not null default false,
-          primary key ("todoId")
+          "isCompleted" boolean not null default false
         ) on commit drop
       `
       const todo = { task: 'do it' }
@@ -172,8 +196,7 @@ describe('sql', () => {
         create temporary table "todos" (
           "todoId"      serial,
           "task"        text    not null,
-          "isCompleted" boolean not null default false,
-          primary key ("todoId")
+          "isCompleted" boolean not null default false
         ) on commit drop
       `
       const todos = [{ task: 'do it' }, { task: 'do it now' }]
@@ -187,8 +210,7 @@ describe('sql', () => {
         create temporary table "todos" (
           "todoId"      serial,
           "task"        text    not null,
-          "isCompleted" boolean not null default false,
-          primary key ("todoId")
+          "isCompleted" boolean not null default false
         ) on commit drop
       `
       const todos = [

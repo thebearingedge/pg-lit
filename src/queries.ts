@@ -20,7 +20,7 @@ export abstract class QueryFragment {
 
 }
 
-export class ColumnsAndValues extends QueryFragment {
+export class InsertColumnsAndValues extends QueryFragment {
 
   private readonly row: Many<Row>
   private readonly keys: string[]
@@ -49,6 +49,29 @@ export class ColumnsAndValues extends QueryFragment {
       (${columns.map(escapeIdentifier).join(', ')})
       values ${tuples.join(', ')}
     `
+    return { text, values }
+  }
+
+}
+
+export class SetColumnsAndValues extends QueryFragment {
+
+  private readonly updates: Row
+  private readonly keys: string[]
+
+  constructor(updates: Row, keys: string[]) {
+    super()
+    this.updates = updates
+    this.keys = keys
+  }
+
+  toSql(param: Param): SqlQueryConfig {
+    const { updates, keys } = this
+    const rawColumns = keys.length > 0 ? keys : Object.keys(updates)
+    const values = rawColumns.map(key => updates[key])
+    const columns = rawColumns.map(escapeIdentifier)
+    const tuple = columns.map(() => param())
+    const text = `set (${columns.join(', ')}) = row(${tuple.join(', ')})`
     return { text, values }
   }
 
@@ -86,12 +109,12 @@ export abstract class Query<T> extends QueryFragment {
 export class InsertInto<T> extends Query<T> {
 
   private readonly table: string
-  private readonly columnsAndValues: ColumnsAndValues
+  private readonly columnsAndValues: InsertColumnsAndValues
 
   constructor(driver: PgDriver, table: string, row: Many<Row>, keys: string[]) {
     super(driver)
     this.table = table
-    this.columnsAndValues = new ColumnsAndValues(row, keys)
+    this.columnsAndValues = new InsertColumnsAndValues(row, keys)
   }
 
   toSql(param: Param): SqlQueryConfig {
