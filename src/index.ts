@@ -1,12 +1,6 @@
 import { Pool, PoolConfig } from 'pg'
 import { Sql, Trx, Transaction, createSql, createTrx } from './builders'
 
-export { Trx }
-
-export type PgLit = Sql & {
-  pool: Pool
-}
-
 export default function pgLit(config?: PoolConfig): PgLit {
   const pool = new Pool(config)
   const sql = createSql(pool, {
@@ -26,4 +20,10 @@ export default function pgLit(config?: PoolConfig): PgLit {
     }
   })
   return Object.assign(sql, { pool })
+}
+
+export { Trx }
+
+export type PgLit = Sql & {
+  pool: Pool
 }

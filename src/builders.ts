@@ -10,43 +10,6 @@ const uniqueId: () => string = (() => {
   }
 })()
 
-type SqlHelper = {
-  set(updates: Row, ...keys: string[]): SetColumnsAndValues
-  insert(row: Many<Row>, ...keys: string[]): InsertColumnsAndValues
-  insertInto<T>(table: string, row: Many<Row>, ...keys: string[]): InsertInto<T>
-}
-
-type QueryBuilder = {
-  <T>(template: TemplateStringsArray, ...fields: Array<Field | QueryFragment>): SqlQuery<T>
-}
-
-export type Sql = SqlHelper & QueryBuilder & Transactor & {
-  driver: PgDriver
-}
-
-export type Transaction = (trx: Trx) => any
-
-type TransactionConfig = {
-  driver: PoolClient
-  parent?: Trx
-}
-
-interface Transactor {
-  begin(): Promise<Trx>
-  begin<T extends Transaction>(transaction: T): Promise<ReturnType<T>>
-  begin<T extends Transaction>(transaction?: T): Promise<Trx | ReturnType<T>>
-}
-
-export type Trx = Sql & {
-  commit(): Promise<void>
-  revert(): Promise<void>
-  rollback(): Promise<void>
-  savepoint(): Promise<void>
-  getState(): TransactionState
-}
-
-type TransactionState = 'pending' | 'committed' | 'rolled back'
-
 export function createSql<T extends Transactor>(driver: PgDriver, methods: T): Sql & T {
   function sql<T>(template: TemplateStringsArray, ...fields: Array<Field | QueryFragment>): SqlQuery<T> {
     return new SqlQuery<T>(driver, template, fields)
@@ -111,4 +74,41 @@ export function createTrx({ driver, parent }: TransactionConfig): Trx {
   })
 
   return sql
+}
+
+type QueryBuilder = {
+  <T>(template: TemplateStringsArray, ...fields: Array<Field | QueryFragment>): SqlQuery<T>
+}
+
+type QueryHelper = {
+  set(updates: Row, ...keys: string[]): SetColumnsAndValues
+  insert(row: Many<Row>, ...keys: string[]): InsertColumnsAndValues
+  insertInto<T>(table: string, row: Many<Row>, ...keys: string[]): InsertInto<T>
+}
+
+interface Transactor {
+  begin(): Promise<Trx>
+  begin<T extends Transaction>(transaction: T): Promise<ReturnType<T>>
+  begin<T extends Transaction>(transaction?: T): Promise<Trx | ReturnType<T>>
+}
+
+export type Sql = QueryBuilder & QueryHelper & Transactor & {
+  driver: PgDriver
+}
+
+export type Transaction = (trx: Trx) => any
+
+type TransactionConfig = {
+  driver: PoolClient
+  parent?: Trx
+}
+
+type TransactionState = 'pending' | 'committed' | 'rolled back'
+
+export type Trx = Sql & {
+  commit(): Promise<void>
+  revert(): Promise<void>
+  rollback(): Promise<void>
+  savepoint(): Promise<void>
+  getState(): TransactionState
 }

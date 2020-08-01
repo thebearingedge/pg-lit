@@ -3,16 +3,9 @@ import { Many, Row, Field, PgDriver } from './types'
 
 const { escapeIdentifier } = Client.prototype
 
-export default function params(start: number = 1) {
+function params(start: number = 1) {
   return () => '$' + String(start++)
 }
-
-type SqlQueryConfig = {
-  text: string
-  values: Field[]
-}
-
-type Param = ReturnType<typeof params>
 
 export abstract class QueryFragment {
 
@@ -76,14 +69,6 @@ export class SetColumnsAndValues extends QueryFragment {
   }
 
 }
-
-type PartialQueryConfig = Partial<Pick<QueryConfig & QueryArrayConfig, 'name' | 'rowMode'>>
-
-type SqlResult<T> = QueryResult<T>['rows'] & Omit<QueryResult, 'rows'>
-
-type OnQueryFulfilled<T> = (result: SqlResult<T>) => any
-
-type OnQueryRejected = (reason: any) => any
 
 abstract class Query<T> extends QueryFragment {
 
@@ -162,3 +147,18 @@ export class SqlQuery<T> extends Query<T> {
   }
 
 }
+
+type SqlQueryConfig = {
+  text: string
+  values: Field[]
+}
+
+type Param = ReturnType<typeof params>
+
+type PartialQueryConfig = Partial<Pick<QueryConfig & QueryArrayConfig, 'name' | 'rowMode'>>
+
+type SqlResult<T> = QueryResult<T>['rows'] & Omit<QueryResult, 'rows'>
+
+type OnQueryFulfilled<T> = (result: SqlResult<T>) => any
+
+type OnQueryRejected = (reason: any) => any
