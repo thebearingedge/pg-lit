@@ -6,7 +6,6 @@
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
-    "!dist/**/test.ts",
     "!dist/**/*.test.*"
   ],
   "scripts": {
@@ -16,7 +15,7 @@
     "db:stop": "docker-compose down",
     "cover": "nyc mocha",
     "lint": "eslint --ext .ts .",
-    "prepack": "rimraf dist && tsc -p tsconfig.prod.json"
+    "prepack": "rimraf dist && tsc"
   },
   "husky": {
     "hooks": {
