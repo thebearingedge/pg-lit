@@ -63,6 +63,9 @@
   "peerDependencies": {
     "pg": "8.x"
   },
+  "optionalDependencies": {
+    "@types/pg": "7.14.4"
+  },
   "devDependencies": {
     "@types/chai": "4.2.12",
     "@types/mocha": "8.0.1",
