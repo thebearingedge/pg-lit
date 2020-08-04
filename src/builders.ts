@@ -27,7 +27,7 @@ export function createTrx({ driver, parent }: TransactionConfig): Trx {
   let state: TransactionState = 'pending'
 
   const sql = createSql(driver, {
-    getState() { return state },
+    getState: () => state,
     begin: async <T extends Transaction>(transaction?: T) => {
       const trx = createTrx({ driver, parent: sql })
       try {
