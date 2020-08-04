@@ -22,7 +22,7 @@ export default function pgLit(config?: PoolConfig): PgLit {
   return Object.assign(sql, { pool })
 }
 
-export { Trx }
+export { pgLit, Trx }
 
 export type PgLit = Sql & {
   pool: Pool

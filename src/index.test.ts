@@ -1,6 +1,5 @@
 import { expect } from 'chai'
-import pgLit, { PgLit } from '.'
-import { Trx } from './builders'
+import { PgLit, Trx, pgLit } from '.'
 
 describe('sql', () => {
 
@@ -24,8 +23,7 @@ describe('sql', () => {
   })
 
   it('query', async () => {
-    const { rowCount, 0: only } = await sql<{one: number}>`select 1 as "one"`
-    expect(rowCount).to.equal(1)
+    const [only] = await sql<{ one: number }>`select 1 as "one"`
     expect(only).to.deep.equal({ one: 1 })
   })
 

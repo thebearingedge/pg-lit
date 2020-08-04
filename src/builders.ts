@@ -86,7 +86,7 @@ type QueryHelper = {
   insertInto<T>(table: string, row: Many<Row>, ...keys: string[]): InsertInto<T>
 }
 
-interface Transactor {
+type Transactor = {
   begin(): Promise<Trx>
   begin<T extends Transaction>(transaction: T): Promise<ReturnType<T>>
   begin<T extends Transaction>(transaction?: T): Promise<Trx | ReturnType<T>>
