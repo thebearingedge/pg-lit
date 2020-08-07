@@ -76,11 +76,11 @@ export function createTrx({ driver, parent }: TransactionConfig): Trx {
   return sql
 }
 
-type QueryBuilder = {
+type SqlTag = {
   <T>(template: TemplateStringsArray, ...fields: Array<Field | QueryFragment>): SqlQuery<T>
 }
 
-type QueryHelper = {
+type QueryBuilder = {
   set(updates: Row, ...keys: string[]): SetColumnsAndValues
   insert(row: Many<Row>, ...keys: string[]): InsertColumnsAndValues
   insertInto<T>(table: string, row: Many<Row>, ...keys: string[]): InsertInto<T>
@@ -89,10 +89,9 @@ type QueryHelper = {
 type Transactor = {
   begin(): Promise<Trx>
   begin<T extends Transaction>(transaction: T): Promise<ReturnType<T>>
-  begin<T extends Transaction>(transaction?: T): Promise<Trx | ReturnType<T>>
 }
 
-export type Sql = QueryBuilder & QueryHelper & Transactor & {
+export type Sql = SqlTag & QueryBuilder & Transactor & {
   driver: PgDriver
 }
 
