@@ -47,12 +47,10 @@ Robust alternatives to `pg-lit` include [`porsager/postgres`](https://github.com
 ```js
 sql`select ${7} as "seven"`
 
-/**
- * {
- *   text: 'select $1 as "seven"',
- *   values: [7]
- * }
- */
+{
+  text: 'select $1 as "seven"',
+  values: [7]
+}
 ```
 
 ### Async/Thenable
@@ -89,24 +87,21 @@ await sql`
    where "todoId" = ${7}
 `
 
-/**
- * {
- *   text: 'update "todos" set "isCompleted" = $1 where "todoId" = $2',
- *   values: [true, 7]
- * }
- */
+{
+  text: 'update "todos" set "isCompleted" = $1 where "todoId" = $2',
+  values: [true, 7]
+}
 
 await sql.insertInto('users', [
   { username: 'bebop' },
   { username: 'rocksteady' }
 ])
 
-/**
- * {
- *   text: 'insert into "users" ("username") values ($1), ($2)',
- *   values: ['bebop', 'rocksteady']
- * }
- */
+{
+  text: 'insert into "users" ("username") values ($1), ($2)',
+  values: ['bebop', 'rocksteady']
+}
+
 ```
 
 ### Transactions
@@ -243,12 +238,10 @@ await sql`
    where "todoId" = 1
 `
 
-/**
- * {
- *   text: 'update "todos" set "task" = $1, "isCompleted" = $2 where "todoId" = 1',
- *   values: ['do it again', false]
- * }
- */
+{
+  text: 'update "todos" set "task" = $1, "isCompleted" = $2 where "todoId" = 1',
+  values: ['do it again', false]
+}
 ```
 
 ### `PgLit.insert(rows, ...columns) -> ColumnsAndValues`
@@ -270,10 +263,8 @@ const result = await sql`
   returning *
 `
 
-/**
- * {
- *   text: 'insert into "users" ("username") values ($1), ($2)',
- *   values: ['bebop', 'rocksteady']
- * }
- */
+{
+  text: 'insert into "users" ("username") values ($1), ($2)',
+  values: ['bebop', 'rocksteady']
+}
 ```
