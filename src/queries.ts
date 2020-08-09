@@ -77,6 +77,26 @@ abstract class Query<T> extends QueryFragment {
     this.driver = driver
   }
 
+  /**
+   * A `SqlQuery` is a thenable object, so you can either call `.then()` on it, to get a `Promise` for your result or `await` the result. This builds and sends a parameterized query through `pg` to the database.
+   *
+   * ```js
+   * sql`select 1 as "one"`
+   *   .then(result => {
+   *     // got 'em
+   *   })
+   *   .catch(err => {
+   *     // deal with it
+   *   })
+   *
+   * try {
+   *   const result = await sql`select 1 as "one"`
+   *   // got 'em
+   * } catch (err) {
+   *   // deal with it
+   * }
+   * ```
+   */
   then<F extends OnQueryFulfilled<T>>(onFulfilled: F, onRejected?: OnQueryRejected): Promise<ReturnType<F>> {
     return this.exec({}).then(onFulfilled, onRejected)
   }
@@ -157,6 +177,26 @@ type Param = ReturnType<typeof params>
 
 type PartialQueryConfig = Partial<Pick<QueryConfig & QueryArrayConfig, 'name' | 'rowMode'>>
 
+/**
+ * The `SqlResult` is actually an `Array` of rows returned by your query.
+ *
+ * ```js
+ * const todos = await sql`
+ *   select *
+ *     from "todos"
+ * `
+ *
+ * todos.forEach(todo => {
+ *   console.log(typeof todo) // 'object'
+ * })
+ * ```
+ *
+ * Usually the rows are what you're after, but properties of `pg`'s [`Result`](https://node-postgres.com/api/result) are mixed into the array in case you need them.
+ *
+ * - `SqlResult.fields`
+ * - `SqlResult.command`
+ * - `SqlResult.rowCount`
+ */
 type SqlResult<T> = QueryResult<T>['rows'] & Omit<QueryResult, 'rows'>
 
 type OnQueryFulfilled<T> = (result: SqlResult<T>) => any

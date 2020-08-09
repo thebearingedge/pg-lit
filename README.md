@@ -17,12 +17,13 @@ npm i pg pg-lit
 
 ```js
 const { pgLit } = require('pg-lit')
-const sql = pgLit({ /* PoolConfig */ })
+// or
+import { pgLit } from 'pg-lit'
 ```
 
 ## Features
 
-The `pg` library suits my use cases, but I found it somewhat unergonomic for a few common tasks. At present `pg-lit` comes with an intentionally small feature set at about ~250 SLoC, but I am open to suggestions.
+The `pg` library suits my use cases, but I found it somewhat unergonomic for a few common tasks. At present, `pg-lit` comes with an intentionally small feature set at about ~250 lines of TypeScript, but I am open to suggestions.
 
 Robust alternatives to `pg/pg-lit` include [`porsager/postgres`](https://github.com/porsager/postgres) and [`adelsz/pgtyped`](https://github.com/adelsz/pgtyped).
 
@@ -47,14 +48,14 @@ Queries can be executed by `await` or `.then()` and are not computed or sent unt
 
 ```js
 try {
-  const [gotem] = await sql`select ${7} as "seven"`
+  const [gotEm] = await sql`select ${7} as "seven"`
   // { seven: 7 }
 } catch (err) {
   // deal with it
 }
 
 sql`select ${7} as "seven"`
-  .then(([gotem]) => {
+  .then(([gotEm]) => {
     // { seven: 7 }
   })
   .catch(err => {
@@ -102,8 +103,8 @@ Transactions can be used with either automatic or manual `commit` and `rollback`
 ```js
 // automatic
 try {
-  await sql.begin(async sql => {
-    await sql`
+  const [inserted] = sql.begin(async sql => {
+    return sql`
       insert into "users"
       ${sql.insert({ username: 'krang' })}
       returning *
@@ -117,12 +118,15 @@ try {
 // manual
 const trx = await sql.begin()
 
-await trx.insertInto('users', [
-  { username: 'bebop' },
-  { username: 'rocksteady' }
-])
-
-await trx.commit() // or trx.rollback()
+try {
+  await trx.insertInto('users', [
+    { username: 'bebop' },
+    { username: 'rocksteady' }
+  ])
+  await trx.commit()
+} catch (err) {
+  await trx.rollback()
+}
 ```
 
 ### Driver Access
@@ -136,3 +140,70 @@ await sql.pool.end() // shut it down
 ```
 
 ## API
+
+### `pgLit(poolConfig) -> PgLit`
+
+Instantiates a [`pg.Pool`](https://node-postgres.com/api/pool) and wraps it in the template tag interface.
+
+```js
+import { pgLit } from 'pg-lit'
+const sql = pgLit({ ...PoolConfig })
+```
+
+### ``` sql`` -> SqlQuery```
+
+Calling the `sql` tag with a template literal produces a query that can be either executed or embedded within another `SqlQuery`. Values passed into the template string are **not concatenated into the query text** (because security), but instead gathered to be sent as query parameters with `pg`.
+
+```js
+const simple = sql`select 1 as "one"`
+
+const embedded = sql`
+  with "selected" as (
+    ${sql`select 1 as "one"`}
+  )
+  select "one"
+    from "selected"
+`
+```
+
+### `SqlQuery.then() -> Promise<SqlResult> OR await SqlQuery -> SqlResult`
+
+A `SqlQuery` is a thenable object, so you can either call `.then()` on it, to instantiate a `Promise` for your result or `await` the result. A safe, parameterized query is sent through `pg` to the database.
+
+```js
+sql`select 1 as "one"`
+  .then(result => {
+    // got 'em
+  })
+  .catch(err => {
+    // deal with it
+  })
+
+try {
+  const result = await sql`select 1 as "one"`
+  // got 'em
+} catch (err) {
+  // deal with it
+}
+```
+
+### SqlResult
+
+The `SqlResult` is actually an `Array` of rows returned by your query.
+
+```js
+const todos = await sql`
+  select *
+    from "todos"
+`
+
+todos.forEach(todo => {
+  console.log(typeof todo) // 'object'
+})
+```
+
+Usually the rows are what you're after, but properties of `pg`'s [`Result`](https://node-postgres.com/api/result) are mixed into the array in case you need them.
+
+- `SqlResult.fields`
+- `SqlResult.command`
+- `SqlResult.rowCount`
