@@ -220,6 +220,52 @@ Usually the rows are what you're after, so for convenience that's what is return
 
 Build and send the query to the database, optionally specifying a prepared statement `name` and a `rowMode`. These are options [supported directly by `pg`](https://node-postgres.com/features/queries#query-config-object).
 
+### `PgLit.insertInto(table, rows, ...columns) -> SqlQuery`
+
+Create a query that takes care of the annoying parts of constructing a basic `insert` statement. Like any `SqlQuery`, it can be embedded into the template of another `SqlQuery`.
+
+- `table` the string name of the table to `insert into`.
+- `rows` a single object or array of objects.
+- `columns` are optional and by default will be inferred from the keys of first row being inserted.
+
+```js
+const users = [
+  { username: 'bebop' },
+  { username: 'rocksteady' }
+]
+
+await sql.insertInto('users', users, 'username')
+
+{
+  text: 'insert into "users" ("username") values ($1), ($2)',
+  values: ['bebop', 'rocksteady']
+}
+
+const [bebop] = await sql`
+  with "inserted" as (
+    ${sql.insertInto('users', users)}
+    returning *
+  )
+  select *
+    from "inserted"
+   where "username" = 'bebop'
+`
+
+{
+  text: `
+    with "inserted" as (
+      insert into "users" ("username")
+      values ($1), $(2)
+      returning *
+    )
+    select *
+      from "inserted"
+     where "username" = 'bebop'
+  `,
+  values: ['bebop', 'rocksteady']
+}
+```
+
 ### `PgLit.set(updates, ...columns) -> SetClause`
 
 Create a query fragment that takes care of the annoying parts of constructing the `set` clause of an `update` statement. **Note: this is not an executable query**.

@@ -130,6 +130,51 @@ type QueryBuilder = {
    * ```
    */
   insert(row: Many<Row>, ...keys: string[]): ColumnsAndValues
+  /**
+   * Create a query that takes care of the annoying parts of constructing a basic `insert` statement. Like any `SqlQuery`, it can be embedded into the template of another `SqlQuery`.
+   *
+   * - `table` the string name of the table to `insert into`.
+   * - `rows` a single object or array of objects.
+   * - `columns` are optional and by default will be inferred from the keys of first row being inserted.
+   *
+   * ```js
+   * const users = [
+   *   { username: 'bebop' },
+   *   { username: 'rocksteady' }
+   * ]
+   *
+   * await sql.insertInto('users', users, 'username')
+   *
+   * {
+   *   text: 'insert into "users" ("username") values ($1), ($2)',
+   *   values: ['bebop', 'rocksteady']
+   * }
+   *
+   * const [bebop] = await sql`
+   *   with "inserted" as (
+   *     ${sql.insertInto('users', users)}
+   *     returning *
+   *   )
+   *   select *
+   *     from "inserted"
+   *    where "username" = 'bebop'
+   * `
+   *
+   * {
+   *   text: `
+   *     with "inserted" as (
+   *       insert into "users" ("username")
+   *       values ($1), $(2)
+   *       returning *
+   *     )
+   *     select *
+   *       from "inserted"
+   *      where "username" = 'bebop'
+   *   `,
+   *   values: ['bebop', 'rocksteady']
+   * }
+   * ```
+   */
   insertInto<T>(table: string, row: Many<Row>, ...keys: string[]): InsertInto<T>
 }
 
