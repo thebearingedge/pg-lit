@@ -99,7 +99,7 @@ type QueryBuilder = {
    * `
    *
    * {
-   *   text: 'update "todos" set "task" = $1, "isCompleted" = $2 where "todoId" = 1',
+   *   text: 'update "todos" set ("task", "isCompleted") = row($1, $2) where "todoId" = 1',
    *   values: ['do it again', false]
    * }
    * ```

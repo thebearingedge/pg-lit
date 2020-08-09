@@ -88,7 +88,7 @@ await sql`
 `
 
 {
-  text: 'update "todos" set "isCompleted" = $1 where "todoId" = $2',
+  text: 'update "todos" set ("isCompleted") = row($1) where "todoId" = $2',
   values: [true, 7]
 }
 
@@ -239,7 +239,7 @@ await sql`
 `
 
 {
-  text: 'update "todos" set "task" = $1, "isCompleted" = $2 where "todoId" = 1',
+  text: 'update "todos" set ("task", "isCompleted") = row($1, $2) where "todoId" = 1',
   values: ['do it again', false]
 }
 ```
