@@ -13,7 +13,7 @@ export abstract class QueryFragment {
 
 }
 
-export class InsertColumnsAndValues extends QueryFragment {
+export class ColumnsAndValues extends QueryFragment {
 
   private readonly row: Many<Row>
   private readonly keys: string[]
@@ -47,7 +47,7 @@ export class InsertColumnsAndValues extends QueryFragment {
 
 }
 
-export class SetColumnsAndValues extends QueryFragment {
+export class SetClause extends QueryFragment {
 
   private readonly updates: Row
   private readonly keys: string[]
@@ -101,7 +101,10 @@ abstract class Query<T> extends QueryFragment {
     return this.exec({}).then(onFulfilled, onRejected)
   }
 
-  async exec(options: PartialQueryConfig): Promise<SqlResult<T>> {
+  /**
+   * Build and send the query to the database, optionally specifying a prepared statement `name` and a `rowMode`. These are options [supported directly by `pg`](https://node-postgres.com/features/queries#query-config-object).
+   */
+  async exec(options: SqlQueryExecOptions): Promise<SqlResult<T>> {
     const { rows, ...result } = await this.driver.query({
       ...options,
       ...this.toSql(params())
@@ -114,12 +117,12 @@ abstract class Query<T> extends QueryFragment {
 export class InsertInto<T> extends Query<T> {
 
   private readonly table: string
-  private readonly columnsAndValues: InsertColumnsAndValues
+  private readonly columnsAndValues: ColumnsAndValues
 
   constructor(driver: PgDriver, table: string, row: Many<Row>, keys: string[]) {
     super(driver)
     this.table = table
-    this.columnsAndValues = new InsertColumnsAndValues(row, keys)
+    this.columnsAndValues = new ColumnsAndValues(row, keys)
   }
 
   toSql(param: Param): SqlQueryConfig {
@@ -175,23 +178,23 @@ type SqlQueryConfig = {
 
 type Param = ReturnType<typeof params>
 
-type PartialQueryConfig = Partial<Pick<QueryConfig & QueryArrayConfig, 'name' | 'rowMode'>>
+type SqlQueryExecOptions = Partial<Pick<QueryConfig & QueryArrayConfig, 'name' | 'rowMode'>>
 
 /**
  * The `SqlResult` is actually an `Array` of rows returned by your query.
  *
  * ```js
- * const todos = await sql`
+ * const result = await sql`
  *   select *
  *     from "todos"
  * `
  *
- * todos.forEach(todo => {
+ * result.forEach(todo => {
  *   console.log(typeof todo) // 'object'
  * })
  * ```
  *
- * Usually the rows are what you're after, but properties of `pg`'s [`Result`](https://node-postgres.com/api/result) are mixed into the array in case you need them.
+ * Usually the rows are what you're after, so for convenience that's what is return, but properties of `pg`'s [`Result`](https://node-postgres.com/api/result) are added directly the array of rows in case you need them.
  *
  * - `SqlResult.fields`
  * - `SqlResult.command`

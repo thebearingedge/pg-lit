@@ -5,27 +5,40 @@ A tagged template literal interface for `node-postgres`.
 [![Build Status](https://travis-ci.com/thebearingedge/pg-lit.svg?branch=master)](https://travis-ci.com/thebearingedge/pg-lit.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/thebearingedge/pg-lit/badge.svg)](https://coveralls.io/github/thebearingedge/pg-lit)
 
+## Contents
+
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Features](#features)
+  - [Parameterized Queries](#parameterized-queries)
+  - [Async/Thenable](#asyncthenable)
+  - [Fragments and Helpers](#fragments-and-helpers)
+  - [Transactions](#transactions)
+- [API](#api)
+
 ## Installation
 
 ```shell
 npm i pg pg-lit
 ```
 
-## Instantiation
+## Getting Started
 
 `pg-lit` takes any configuration that you'd normally pass to a [`pg.Pool`](https://node-postgres.com/api/pool) constructor and returns a template tag for querying the pool.
 
 ```js
-const { pgLit } = require('pg-lit')
-// or
 import { pgLit } from 'pg-lit'
+// or
+const { pgLit } = require('pg-lit')
+
+const sql = pgLit({ ...PoolConfig })
 ```
 
 ## Features
 
 The `pg` library suits my use cases, but I found it somewhat unergonomic for a few common tasks. At present, `pg-lit` comes with an intentionally small feature set at about ~250 lines of TypeScript, but I am open to suggestions.
 
-Robust alternatives to `pg/pg-lit` include [`porsager/postgres`](https://github.com/porsager/postgres) and [`adelsz/pgtyped`](https://github.com/adelsz/pgtyped).
+Robust alternatives to `pg-lit` include [`porsager/postgres`](https://github.com/porsager/postgres) and [`adelsz/pgtyped`](https://github.com/adelsz/pgtyped).
 
 ### Parameterized Queries
 
@@ -150,7 +163,7 @@ import { pgLit } from 'pg-lit'
 const sql = pgLit({ ...PoolConfig })
 ```
 
-### ``` sql`` -> SqlQuery```
+### ``` PgLit`` -> SqlQuery```
 
 Calling the `sql` tag with a template literal produces a query that can be either executed or embedded within another `SqlQuery`. Values passed into the template string are **not concatenated into the query text** (because security), but instead gathered to be sent as query parameters with `pg`.
 
@@ -187,23 +200,80 @@ try {
 }
 ```
 
-### SqlResult
+### `SqlResult`
 
 The `SqlResult` is actually an `Array` of rows returned by your query.
 
 ```js
-const todos = await sql`
+const result = await sql`
   select *
     from "todos"
 `
 
-todos.forEach(todo => {
+result.forEach(todo => {
   console.log(typeof todo) // 'object'
 })
 ```
 
-Usually the rows are what you're after, but properties of `pg`'s [`Result`](https://node-postgres.com/api/result) are mixed into the array in case you need them.
+Usually the rows are what you're after, so for convenience that's what is return, but properties of `pg`'s [`Result`](https://node-postgres.com/api/result) are added directly the array of rows in case you need them.
 
 - `SqlResult.fields`
 - `SqlResult.command`
 - `SqlResult.rowCount`
+
+### `SqlQuery.exec({ name, rowMode }) -> Promise<SqlResult>`
+
+Build and send the query to the database, optionally specifying a prepared statement `name` and a `rowMode`. These are options [supported directly by `pg`](https://node-postgres.com/features/queries#query-config-object).
+
+### `PgLit.set(updates, ...columns) -> SetClause`
+
+Create a query fragment that takes care of the annoying parts of constructing the `set` clause of an `update` statement. **Note: this is not an executable query**.
+
+- `updates` is an object.
+- `columns` are optional and by default will be inferred from the keys of the `updates` object.
+
+```js
+const updates = {
+  isCompleted: false
+  task: 'do it again'
+}
+
+await sql`
+  update "todos" ${sql.set(updates, 'task', 'isCompleted')}
+   where "todoId" = 1
+`
+
+/**
+ * {
+ *   text: 'update "todos" set "task" = $1, "isCompleted" = $2 where "todoId" = 1',
+ *   values: ['do it again', false]
+ * }
+ */
+```
+
+### `PgLit.insert(rows, ...columns) -> ColumnsAndValues`
+
+Create a query fragment that takes care of the annoying parts of inserting records into a table while allowing an alias for the target table. **Note: this is not an executable query**.
+
+- `rows` can be an object or an array.
+- `columns` are optional and by default will be inferred from the keys of the first row being inserted.
+
+```js
+const rows = [
+  { username: 'bebop' },
+  { username: 'rocksteady' }
+]
+
+const result = await sql`
+  insert into "users"
+  ${sql.insert(rows, 'username')}
+  returning *
+`
+
+/**
+ * {
+ *   text: 'insert into "users" ("username") values ($1), ($2)',
+ *   values: ['bebop', 'rocksteady']
+ * }
+ */
+```

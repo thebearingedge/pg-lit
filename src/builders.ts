@@ -1,6 +1,6 @@
 import { PoolClient } from 'pg'
 import { Row, Many, Field, PgDriver } from './types'
-import { QueryFragment, InsertInto, SqlQuery, InsertColumnsAndValues, SetColumnsAndValues } from './queries'
+import { QueryFragment, InsertInto, SqlQuery, ColumnsAndValues, SetClause } from './queries'
 
 const uniqueId: () => string = (() => {
   let id = 0
@@ -15,8 +15,8 @@ export function createSql<T extends Transactor>(driver: PgDriver, methods: T): S
     return new SqlQuery<T>(driver, template, fields)
   }
   return Object.assign(sql, { driver }, methods, {
-    set: (updates: Row, ...keys: string[]) => new SetColumnsAndValues(updates, keys),
-    insert: (row: Many<Row>, ...keys: string[]) => new InsertColumnsAndValues(row, keys),
+    set: (updates: Row, ...keys: string[]) => new SetClause(updates, keys),
+    insert: (row: Many<Row>, ...keys: string[]) => new ColumnsAndValues(row, keys),
     insertInto: <T>(table: string, row: Many<Row>, ...keys: string[]) => new InsertInto<T>(driver, table, row, keys)
   })
 }
@@ -81,8 +81,55 @@ type SqlTag = {
 }
 
 type QueryBuilder = {
-  set(updates: Row, ...keys: string[]): SetColumnsAndValues
-  insert(row: Many<Row>, ...keys: string[]): InsertColumnsAndValues
+  /**
+   * Create a query fragment that takes care of the annoying parts of constructing the `set` clause of an `update` statement. **Note: this is not an executable query**.
+   *
+   * - `updates` is an object.
+   * - `columns` are optional and by default will be inferred from the keys of the `updates` object.
+   *
+   * ```js
+   * const updates = {
+   *   isCompleted: false
+   *   task: 'do it again'
+   * }
+   *
+   * await sql`
+   *   update "todos" ${sql.set(updates, 'task', 'isCompleted')}
+   *    where "todoId" = 1
+   * `
+   *
+   * {
+   *   text: 'update "todos" set "task" = $1, "isCompleted" = $2 where "todoId" = 1',
+   *   values: ['do it again', false]
+   * }
+   * ```
+   */
+  set(updates: Row, ...keys: string[]): SetClause
+  /**
+   * Create a query fragment that takes care of the annoying parts of inserting records into a table while allowing an alias for the target table. **Note: this is not an executable query**.
+   *
+   * - `rows` can be an object or an array
+   * - `columns` are optional and will be inferred from the first row being inserted by default.
+   *
+   * ```js
+   * const users = [
+   *   { username: 'bebop' },
+   *   { username: 'rocksteady' }
+   * ]
+   *
+   * const result = await sql`
+   *   insert into "users"
+   *   ${sql.insert(users, 'username')}
+   *   returning *
+   * `
+   *
+   * {
+   *   text: 'insert into "users" ("username") values ($1), ($2)',
+   *   values: ['bebop', 'rocksteady']
+   * }
+   * ```
+   */
+  insert(row: Many<Row>, ...keys: string[]): ColumnsAndValues
   insertInto<T>(table: string, row: Many<Row>, ...keys: string[]): InsertInto<T>
 }
 
