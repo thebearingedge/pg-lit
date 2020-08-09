@@ -1,12 +1,17 @@
 import { expect } from 'chai'
+import retry from 'promise-retry'
 import { PgLit, Trx, pgLit } from '.'
 
 describe('sql', () => {
 
   let sql: PgLit
 
-  before(() => {
+  before(function (done) {
+    this.timeout(10000)
     sql = pgLit({ connectionString: 'postgres://test:test@localhost/test' })
+    retry(retry => sql.pool.query('select 1').then(() => {}, retry), {
+      maxRetryTime: 10000
+    }).then(done, done)
   })
 
   afterEach(() => {
