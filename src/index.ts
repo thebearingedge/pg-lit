@@ -2,7 +2,7 @@ import { Pool, PoolConfig } from 'pg'
 import { Sql, Trx, Transaction, createSql, createTrx } from './builders'
 
 /**
- * Instantiates a [`pg.Pool`](https://node-postgres.com/api/pool) and wraps it in the template tag interface.
+ * Instantiates a [`pg.Pool`](https://node-postgres.com/api/pool) and wraps it in a template tag interface.
  * As with `pg.Pool`, [environment variables](https://www.postgresql.org/docs/12/libpq-envars.html) are used as a fallback for connection parameters.
  *
  * ```js

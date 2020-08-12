@@ -151,7 +151,7 @@ await sql.pool.end() // shut it down
 
 ### `pgLit(poolConfig) -> PgLit`
 
-Instantiates a [`pg.Pool`](https://node-postgres.com/api/pool) and wraps it in the template tag interface.
+Instantiates a [`pg.Pool`](https://node-postgres.com/api/pool) and wraps it in a template tag interface.
 
 ```js
 import { pgLit } from 'pg-lit'
@@ -321,7 +321,7 @@ const result = await sql`
 }
 ```
 
-### PgLit.begin(Trx -> any) -> Promise<any>
+### `PgLit.begin(Trx -> any) -> Promise<any>`
 
 A convenience method for starting a database transaction.
 
@@ -346,9 +346,7 @@ try {
 }
 ```
 
-Transaction objects also implement the same template literal interface and helper methods as a normal PgLit instance.
-
-### PgLit.begin() -> Promise<Trx>
+### `PgLit.begin() -> Promise<Trx>`
 
 In this form, you must manage the transaction yourself and ensure that either `commit` or `rollback` is called.
 
@@ -365,3 +363,31 @@ try {
   await trx.rollback()
 }
 ```
+
+### `Trx.commit() -> Promise<void>`
+
+`commit` the transaction.
+
+### `Trx.rollback() -> Promise<void>`
+
+`rollback` the transaction.
+
+### `Trx.savepoint() -> Promise<void>`
+
+Create a uniquely identified `savepoint` for the transaction.
+
+### `Trx.revert() -> Promise<void>`
+
+`rollback to` the last `savepoint` of the transaction.
+
+### `Trx.begin(Trx -> any) -> Promise<any>`
+
+Begin a "nested" transaction simulated with `savepoint` that is automatically saved again once the Promise is fulfilled or rolled back if the Promise is rejected. **Note: on rejection, the entire transaction is rolled back to its start, not just to the last `savepoint`**.
+
+### `Trx.begin()`
+### ``` Trx`` -> Promise<SqlResult>```
+### `Trx.insertInto(table, rows, ...columns)`
+### `Trx.set(table, rows, ...columns)`
+### `Trx.insert(rows, ...columns)`
+
+The same methods available on a normal `PgLit` instance.
