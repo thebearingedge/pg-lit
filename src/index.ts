@@ -33,22 +33,6 @@ export default function pgLit(config?: PoolConfig): PgLit {
 
 export { pgLit, Trx }
 
-/**
- * Calling the `sql` tag with a template literal produces a query that can be either executed or embedded within another `SqlQuery`. Values passed into the template string are **not concatenated into the query text** (because security), but instead gathered to be sent as query parameters with `pg`.
- *
- * ```js
- * const simple = sql`select 1 as "one"`
- *
- * const embedded = sql`
- *   with "selected" as (
- *     ${sql`select 1 as "one"`}
- *   )
- *   select "s"."one"
- *     from "selected" as "s"
- *    where "s"."one" = ${1}
- * `
- * ```
- */
 export type PgLit = Sql & {
   pool: Pool
 }

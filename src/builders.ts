@@ -10,11 +10,11 @@ const uniqueId: () => string = (() => {
   }
 })()
 
-export function createSql<T extends Transactor>(driver: PgDriver, methods: T): Sql & T {
+export function createSql<T extends Transactor>(driver: PgDriver, transactor: T): Sql & T {
   function sql<T>(template: TemplateStringsArray, ...fields: Array<Field | QueryFragment>): SqlQuery<T> {
     return new SqlQuery<T>(driver, template, fields)
   }
-  return Object.assign(sql, { driver }, methods, {
+  return Object.assign(sql, { driver }, transactor, {
     set: (updates: Row, ...keys: string[]) => new SetClause(updates, keys),
     insert: (row: Many<Row>, ...keys: string[]) => new ColumnsAndValues(row, keys),
     insertInto: <T>(table: string, row: Many<Row>, ...keys: string[]) => new InsertInto<T>(driver, table, row, keys)
@@ -76,6 +76,22 @@ export function createTrx({ driver, parent }: TransactionConfig): Trx {
   return sql
 }
 
+/**
+ * Calling the `sql` tag with a template literal produces a query that can be either executed or embedded within another `SqlQuery`. Values passed into the template string are **not concatenated into the query text** (because security), but instead gathered to be sent as query parameters with `pg`.
+ *
+ * ```js
+ * const simple = sql`select 1 as "one"`
+ *
+ * const embedded = sql`
+ *   with "selected" as (
+ *     ${sql`select 1 as "one"`}
+ *   )
+ *   select "s"."one"
+ *     from "selected" as "s"
+ *    where "s"."one" = ${1}
+ * `
+ * ```
+ */
 type SqlTag = {
   <T>(template: TemplateStringsArray, ...fields: Array<Field | QueryFragment>): SqlQuery<T>
 }
@@ -179,7 +195,48 @@ type QueryBuilder = {
 }
 
 type Transactor = {
+  /**
+   * In this form, you must manage the transaction yourself and ensure that either `commit` or `rollback` is called.
+   *
+   * ```js
+   * const trx = await sql.begin()
+   *
+   * try {
+   *   await trx.insertInto('users', [
+   *     { username: 'bebop' },
+   *     { username: 'rocksteady' }
+   *   ])
+   *   await trx.commit()
+   * } catch (err) {
+   *   await trx.rollback()
+   * }
+   * ```
+   */
   begin(): Promise<Trx>
+  /**
+   * A convenience method for starting a database transaction.
+   *
+   * In this callback form, the transaction is managed for you by default. The return value of the callback is `await`ed and if this Promise is fulfilled, the transaction is committed. Otherwise, if this Promise is rejected, the transactions is rolled back.
+   *
+   * The return value of the callback is also the Promise value returned by `.begin()` in this form.
+   *
+   * ```js
+   * try {
+   *   const [inserted] = sql.begin(async sql => {
+   *     // in here, sql is scoped to a specific client connection
+   *     // to be used for the lifetime of the transaction
+   *     return sql`
+   *       insert into "users"
+   *       ${sql.insert({ username: 'krang' })}
+   *       returning *
+   *     `
+   *   })
+   * } catch (err) {
+   *   // transaction rolled back
+   *   // deal with it
+   * }
+   * ```
+   */
   begin<T extends Transaction>(transaction: T): Promise<ReturnType<T>>
 }
 

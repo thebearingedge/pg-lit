@@ -281,12 +281,17 @@ const updates = {
 }
 
 await sql`
-  update "todos" ${sql.set(updates, 'task', 'isCompleted')}
+  update "todos"
+  ${sql.set(updates, 'task', 'isCompleted')}
    where "todoId" = 1
 `
 
 {
-  text: 'update "todos" set ("task", "isCompleted") = row($1, $2) where "todoId" = 1',
+  text: `
+    update "todos"
+       set ("task", "isCompleted") = row($1, $2)
+     where "todoId" = 1
+  `,
   values: ['do it again', false]
 }
 ```
@@ -313,5 +318,50 @@ const result = await sql`
 {
   text: 'insert into "users" ("username") values ($1), ($2)',
   values: ['bebop', 'rocksteady']
+}
+```
+
+### PgLit.begin(Trx -> any) -> Promise<any>
+
+A convenience method for starting a database transaction.
+
+In this callback form, the transaction is managed for you by default. The return value of the callback is `await`ed and if this Promise is fulfilled, the transaction is committed. Otherwise, if this Promise is rejected, the transactions is rolled back.
+
+The return value of the callback is also the Promise value returned by `.begin()` in this form.
+
+```js
+try {
+  const [inserted] = sql.begin(async sql => {
+    // in here, sql is scoped to a specific client connection
+    // to be used for the lifetime of the transaction
+    return sql`
+      insert into "users"
+      ${sql.insert({ username: 'krang' })}
+      returning *
+    `
+  })
+} catch (err) {
+  // transaction rolled back
+  // deal with it
+}
+```
+
+Transaction objects also implement the same template literal interface and helper methods as a normal PgLit instance.
+
+### PgLit.begin() -> Promise<Trx>
+
+In this form, you must manage the transaction yourself and ensure that either `commit` or `rollback` is called.
+
+```js
+const trx = await sql.begin()
+
+try {
+  await trx.insertInto('users', [
+    { username: 'bebop' },
+    { username: 'rocksteady' }
+  ])
+  await trx.commit()
+} catch (err) {
+  await trx.rollback()
 }
 ```
