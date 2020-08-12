@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import retry from 'promise-retry'
-import { PgLit, Trx, pgLit } from '.'
+import { PgLit, Trx, pgLit, First } from '.'
 
 describe('sql', () => {
 
@@ -28,7 +28,7 @@ describe('sql', () => {
   })
 
   it('query', async () => {
-    const [only] = await sql<{ one: number }>`select 1 as "one"`
+    const [only] = await sql<First<{ one: number }>>`select 1 as "one"`
     expect(only).to.deep.equal({ one: 1 })
   })
 

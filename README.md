@@ -210,8 +210,9 @@ result.forEach(todo => {
 })
 ```
 
-Usually the rows are what you're after, so for convenience that's what is return, but properties of `pg`'s [`Result`](https://node-postgres.com/api/result) are added directly the array of rows in case you need them.
+Usually the rows are what you're after, so for convenience that's what is returned, but properties of `pg`'s [`Result`](https://node-postgres.com/api/result) are added directly to the array of rows in case you need them.
 
+- `SqlResult.oid`
 - `SqlResult.fields`
 - `SqlResult.command`
 - `SqlResult.rowCount`

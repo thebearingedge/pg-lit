@@ -52,3 +52,5 @@ export { pgLit, Trx }
 export type PgLit = Sql & {
   pool: Pool
 }
+
+export { First } from './types'

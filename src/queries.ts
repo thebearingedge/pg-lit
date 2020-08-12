@@ -1,5 +1,5 @@
 import { Client, QueryResult, QueryConfig, QueryArrayConfig } from 'pg'
-import { Many, Row, Field, PgDriver } from './types'
+import { Many, Row, First, Field, PgDriver } from './types'
 
 const { escapeIdentifier } = Client.prototype
 
@@ -105,11 +105,11 @@ abstract class Query<T> extends QueryFragment {
    * Build and send the query to the database, optionally specifying a prepared statement `name` and a `rowMode`. These are options [supported directly by `pg`](https://node-postgres.com/features/queries#query-config-object).
    */
   async exec(options: SqlQueryExecOptions): Promise<SqlResult<T>> {
-    const { rows, ...result } = await this.driver.query({
+    const { rows, ...result } = await this.driver.query<T>({
       ...options,
       ...this.toSql(params())
     })
-    return Object.assign(rows, result)
+    return Object.assign(rows as T extends First<infer U> ? MaybeOne<U> : T[], result)
   }
 
 }
@@ -196,12 +196,17 @@ type SqlQueryExecOptions = Partial<Pick<QueryConfig & QueryArrayConfig, 'name' |
  *
  * Usually the rows are what you're after, so for convenience that's what is return, but properties of `pg`'s [`Result`](https://node-postgres.com/api/result) are added directly the array of rows in case you need them.
  *
+ * - `SqlResult.oid`
  * - `SqlResult.fields`
  * - `SqlResult.command`
  * - `SqlResult.rowCount`
  */
-type SqlResult<T> = QueryResult<T>['rows'] & Omit<QueryResult, 'rows'>
+type SqlResult<T> = (T extends First<infer U> ? MaybeOne<U> : T[]) & Omit<QueryResult<T>, 'rows'>
 
 type OnQueryFulfilled<T> = (result: SqlResult<T>) => any
 
 type OnQueryRejected = (reason: any) => any
+
+type MaybeOne<T> =
+  | undefined[] & { length: 0 }
+  | [T, ...unknown[]] & { length: 1 }
