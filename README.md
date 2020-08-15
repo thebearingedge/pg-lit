@@ -36,13 +36,13 @@ const sql = pgLit({ ...PoolConfig })
 
 ## Features
 
-The `pg` library suits my use cases, but I found it somewhat unergonomic for a few common tasks. At present, `pg-lit` comes with an intentionally small feature set at about ~250 lines of TypeScript, but I am open to suggestions.
+The `pg` library is solid, but I found it somewhat unergonomic for a few common tasks. `pg-lit` is a small wrapper that makes these tasks simpler while remaining "SQL-first".
 
 Robust alternatives to `pg-lit` include [`porsager/postgres`](https://github.com/porsager/postgres) and [`adelsz/pgtyped`](https://github.com/adelsz/pgtyped).
 
 ### Parameterized Queries
 
-`pg-lit` uses the mechanism for parameterized queries provided by `node-postgres`. Queries created by `pg-lit` are formatted as "config" objects that are passed to the `node-postgres` driver.
+`pg-lit` uses the parameterized queries mechanism provided by `node-postgres`. Queries created by `pg-lit` are formatted as "config" objects that are passed to the `node-postgres` driver.
 
 ```js
 sql`select ${7} as "seven"`
@@ -55,7 +55,7 @@ sql`select ${7} as "seven"`
 
 ### Async/Thenable
 
-Queries can be executed by `await` or `.then()` and are not computed or sent until that point in your code.
+A query can be executed by `await` or `.then()` but it is lazily computed, so it will not perform any I/O until your code does one of these.
 
 ```js
 try {
@@ -76,7 +76,7 @@ sql`select ${7} as "seven"`
 
 ### Fragments and Helpers
 
-A few helpers are included that can be used for some common tasks that were less nice with the `pg` driver directly. Identifiers are escaped using the `pg` library. There are helpers for inserting and updating, and any of these can be embedded in a larger template.
+A few helpers are included that can be used for some common tasks that were less nice with the `pg` driver directly. Identifiers are escaped using the `pg` library. There are helpers for inserting and updating, and any of these can be embedded in larger queries.
 
 ```js
 const patch = { isCompleted: true }
@@ -106,7 +106,7 @@ await sql.insertInto('users', [
 
 ### Transactions
 
-Transactions can be used with either automatic or manual `commit` and `rollback`.
+Transactions can be used with either automatic or manual `commit` and `rollback`. "Nested" transactions are implemented using savepoints.
 
 ```js
 // automatic
@@ -160,7 +160,7 @@ const sql = pgLit({ ...PoolConfig })
 
 ### ``` PgLit`` -> SqlQuery```
 
-Calling the `sql` tag with a template literal produces a query that can be either executed or embedded within another `SqlQuery`. Values passed into the template string are **not concatenated into the query text** (because security), but instead gathered to be sent as query parameters with `pg`.
+Calling the `sql` tag with a template literal produces a query that can be either executed on its own, or embedded within another `SqlQuery`. Values passed into the template string are **not concatenated into the query text** (because security), but instead gathered to be sent as query parameters with `pg`.
 
 ```js
 const simple = sql`select 1 as "one"`
@@ -269,7 +269,7 @@ const [bebop] = await sql`
 
 ### `PgLit.set(updates, ...columns) -> SetClause`
 
-Create a query fragment that takes care of the annoying parts of constructing the `set` clause of an `update` statement. **Note: this is not an executable query**.
+Create a query fragment that takes care of the annoying parts of constructing the `set` clause of an `update` statement. **Note: this is not an executable `SqlQuery`**.
 
 - `updates` is an object.
 - `columns` are optional and by default will be inferred from the keys of the `updates` object.
@@ -298,7 +298,7 @@ await sql`
 
 ### `PgLit.insert(rows, ...columns) -> ColumnsAndValues`
 
-Create a query fragment that takes care of the annoying parts of inserting records into a table while allowing an alias for the target table. **Note: this is not an executable query**.
+Create a query fragment that takes care of the annoying parts of inserting records into a table while allowing an alias for the target table. **Note: this is not an executable `SqlQuery`**.
 
 - `rows` can be an object or an array.
 - `columns` are optional and by default will be inferred from the keys of the first row being inserted.
@@ -323,7 +323,7 @@ const result = await sql`
 
 ### `PgLit.begin(Trx -> any) -> Promise<any>`
 
-A convenience method for starting a database transaction.
+A convenience method for executing a database transaction.
 
 In this callback form, the transaction is managed for you by default. The return value of the callback is `await`ed and if this Promise is fulfilled, the transaction is committed. Otherwise, if this Promise is rejected, the transactions is rolled back.
 

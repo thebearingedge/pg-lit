@@ -97,14 +97,14 @@ abstract class Query<T> extends QueryFragment {
    * }
    * ```
    */
-  then<F extends OnQueryFulfilled<T>>(onFulfilled: F, onRejected?: OnQueryRejected): Promise<ReturnType<F>> {
-    return this.exec({}).then(onFulfilled, onRejected)
+  then<F extends OnQueryFulfilled<T>>(onFulfilled?: F, onRejected?: OnQueryRejected): Promise<ReturnType<F>> {
+    return this.exec().then(onFulfilled, onRejected)
   }
 
   /**
    * Build and send the query to the database, optionally specifying a prepared statement `name` and a `rowMode`. These are options [supported directly by `pg`](https://node-postgres.com/features/queries#query-config-object).
    */
-  async exec(options: SqlQueryExecOptions): Promise<SqlResult<T>> {
+  async exec(options?: SqlQueryExecOptions): Promise<SqlResult<T>> {
     const { rows, ...result } = await this.driver.query<T>({
       ...options,
       ...this.toSql(params())

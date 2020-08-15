@@ -37,7 +37,7 @@ export function createTrx({ driver, parent }: TransactionConfig): Trx {
         if (trx.getState() === 'pending') await trx.savepoint()
         return result
       } catch (err) {
-        await trx.rollback()
+        trx.getState() === 'pending' && await trx.rollback()
         throw err
       }
     },
