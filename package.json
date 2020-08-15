@@ -58,7 +58,14 @@
     "type": "git",
     "url": "git+https://github.com/thebearingedge/pg-lit.git"
   },
-  "keywords": [],
+  "keywords": [
+    "postgres",
+    "postgresql",
+    "tagged",
+    "template",
+    "literal",
+    "pg"
+  ],
   "author": "Tim Davis <contact@timdav.is>",
   "license": "MIT",
   "peerDependencies": {

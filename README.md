@@ -380,11 +380,10 @@ Create a uniquely identified `savepoint` for the transaction.
 
 `rollback to` the last `savepoint` of the transaction.
 
-### `Trx.begin(Trx -> any) -> Promise<any>`
+### `Trx.begin(Trx -> any) -> Promise<any>` OR `Trx.begin()`
 
 Begin a "nested" transaction simulated with `savepoint` that is automatically saved again once the Promise is fulfilled or rolled back if the Promise is rejected. **Note: on rejection, the entire transaction is rolled back to its start, not just to the last `savepoint`**.
 
-### `Trx.begin()`
 ### ``` Trx`` -> Promise<SqlResult>```
 ### `Trx.insertInto(table, rows, ...columns)`
 ### `Trx.set(table, rows, ...columns)`
