@@ -5,6 +5,8 @@ A tagged template literal interface for `node-postgres`.
 [![Build Status](https://travis-ci.com/thebearingedge/pg-lit.svg?branch=master)](https://travis-ci.com/thebearingedge/pg-lit.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/thebearingedge/pg-lit/badge.svg)](https://coveralls.io/github/thebearingedge/pg-lit)
 
+Also available: [Syntax Highlighting in VS Code](https://marketplace.visualstudio.com/items?itemName=thebearingedge.vscode-sql-lit)
+
 ## Contents
 
 - [Installation](#installation)
@@ -20,6 +22,11 @@ A tagged template literal interface for `node-postgres`.
 
 ```shell
 npm i pg pg-lit
+```
+
+```shell
+# for TypeScript
+npm i -D @types/pg
 ```
 
 ## Getting Started

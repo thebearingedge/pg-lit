@@ -1,6 +1,6 @@
 {
   "name": "pg-lit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "dist/index.js",
   "description": "A tagged template literal interface for `node-postgres`.",
   "files": [
@@ -70,9 +70,6 @@
   "license": "MIT",
   "peerDependencies": {
     "pg": "8.x"
-  },
-  "optionalDependencies": {
-    "@types/pg": "7.14.4"
   },
   "devDependencies": {
     "@types/chai": "4.2.12",
