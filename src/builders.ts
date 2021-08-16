@@ -5,7 +5,7 @@ import { QueryFragment, InsertInto, SqlQuery, ColumnsAndValues, SetClause } from
 const uniqueId: () => string = (() => {
   let id = 0
   return () => {
-    id = id === Number.MAX_SAFE_INTEGER ? /* istanbul ignore next */ 1 : id + 1
+    id = id === Number.MAX_SAFE_INTEGER ? /* c8 ignore next */ 1 : id + 1
     return 'trx_' + id.toString()
   }
 })()
